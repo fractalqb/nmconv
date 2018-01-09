@@ -6,6 +6,11 @@ import (
 	"unicode"
 )
 
+const (
+	Lisp  = "-"
+	Snake = "_"
+)
+
 type Normalize func(string) []string
 
 type Denormalize func([]string) string
