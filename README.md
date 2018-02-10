@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/fractalqb/nmconv.svg)](https://travis-ci.org/fractalqb/nmconv)
+
 # nmconv
 Convert identifiers between different naming conventions
 
