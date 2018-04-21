@@ -7,16 +7,27 @@ import (
 )
 
 const (
-	Lisp  = "-"
+	// Lisp is the separator for lisp-like (kebab case) naming
+	// convetions
+	Lisp = "-"
+	// Snake is the separator for C-like (snake case) naming
+	// convetions
 	Snake = "_"
 )
 
+// Normalize functions convert names from some naming convetion to the
+// normalized form, i.e. an array of strings - each containing one word of the
+// name.
 type Normalize func(string) []string
 
+// Denormalie functions convert names from the normalized form to a naming
+// convention, i.e. it reverses the effect of a Normalize function.
 type Denormalize func([]string) string
 
-func Convert(str string, from Normalize, to Denormalize) string {
-	tmp := from(str)
+// Convert converts a given name by first normlizing it from its current naming
+// convetion and then denormalizing its to the target naming convetnion.
+func Convert(name string, from Normalize, to Denormalize) string {
+	tmp := from(name)
 	return to(tmp)
 }
 
