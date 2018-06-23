@@ -119,3 +119,5 @@ func BenchmarkIfConv(b *testing.B) {
 		conv.Convert("foo_bar_baz")
 	}
 }
+
+// TODO new tests for the Transform concept

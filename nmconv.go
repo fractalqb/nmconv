@@ -24,6 +24,53 @@ type Normalize func(string) []string
 // convention, i.e. it reverses the effect of a Normalize function.
 type Denormalize func([]string) string
 
+// Transform the normalized name. Can be used for up-/downcase conversion or
+// adding pre- or postfixes.
+type Transform func([]string) []string
+
+// ChainX creates a Transform function that applies all xs functions in order.
+func ChainX(xs ...Transform) Transform {
+	return func(segs []string) []string {
+		for _, x := range xs {
+			segs = x(segs)
+		}
+		return segs
+	}
+}
+
+// PerSegment creates a Transform function that replaces each name segment s
+// in place with the result of x(s).
+func PerSegment(x func(string) string) Transform {
+	return func(segs []string) []string {
+		for i := range segs {
+			segs[i] = x(segs[i])
+		}
+		return segs
+	}
+}
+
+// Prefix creates a Transform function that adds segmens at the beginning of a
+// noramlized name.
+func Prefix(pfs ...string) Transform {
+	return func(segs []string) []string {
+		res := make([]string, len(segs)+len(pfs))
+		copy(res, pfs)
+		copy(res[len(pfs):], segs)
+		return res
+	}
+}
+
+// Postfix creates a Transform function that adds segmens at the end of a
+// noramlized name.
+func Postfix(pfs ...string) Transform {
+	return func(segs []string) []string {
+		res := make([]string, len(segs)+len(pfs))
+		copy(res, segs)
+		copy(res[len(segs):], pfs)
+		return res
+	}
+}
+
 // Convert converts a given name by first normlizing it from its current naming
 // convetion and then denormalizing its to the target naming convetnion.
 func Convert(name string, from Normalize, to Denormalize) string {
@@ -31,19 +78,33 @@ func Convert(name string, from Normalize, to Denormalize) string {
 	return to(tmp)
 }
 
-func Sep(separator string) Denormalize {
-	return func(norm []string) string {
-		return strings.Join(norm, separator)
+// ConvertX converts a given name by first normlizing it from its current naming
+// convetion then transforming the normalized name with x and eventually
+// denormalizing its to the target naming convention.
+func ConvertX(name string, from Normalize, x Transform, to Denormalize) string {
+	tmp := from(name)
+	tmp = x(tmp)
+	return to(tmp)
+}
+
+func NormX(n Normalize, x Transform) Normalize {
+	return func(s string) []string {
+		tmp := n(s)
+		tmp = x(tmp)
+		return tmp
 	}
 }
 
-func SepX(xformWord func(string) string, separator string) Denormalize {
+func XDenorm(x Transform, d Denormalize) Denormalize {
+	return func(normal []string) string {
+		normal = x(normal)
+		return d(normal)
+	}
+}
+
+func Sep(separator string) Denormalize {
 	return func(norm []string) string {
-		tmp := make([]string, len(norm))
-		for i := 0; i < len(norm); i++ {
-			tmp[i] = xformWord(norm[i])
-		}
-		return strings.Join(tmp, separator)
+		return strings.Join(norm, separator)
 	}
 }
 
@@ -60,10 +121,11 @@ func SepConvention(separator string) Conversion {
 	}
 }
 
-func SepXConvention(xformWord func(string) string, separator string) Conversion {
+func SepXConvention(x Transform, separator string) Conversion {
 	return Conversion{
 		Norm:   Unsep(separator),
-		Denorm: SepX(xformWord, separator),
+		Xform:  x,
+		Denorm: Sep(separator),
 	}
 }
 
@@ -113,9 +175,14 @@ func Uncamel(str string) (norm []string) {
 
 type Conversion struct {
 	Norm   Normalize
+	Xform  Transform
 	Denorm Denormalize
 }
 
-func (cnv Conversion) Convert(str string) string {
-	return Convert(str, cnv.Norm, cnv.Denorm)
+func (cnv *Conversion) Convert(str string) string {
+	if cnv.Xform == nil {
+		return Convert(str, cnv.Norm, cnv.Denorm)
+	} else {
+		return ConvertX(str, cnv.Norm, cnv.Xform, cnv.Denorm)
+	}
 }
