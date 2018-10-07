@@ -129,7 +129,7 @@ func SepXConvention(x Transform, separator string) Conversion {
 	}
 }
 
-func capWord(w string) string {
+func CapWord(w string) string {
 	if len(w) == 0 {
 		return ""
 	}
@@ -147,7 +147,7 @@ func Camel1Low(norm []string) string {
 	} else {
 		buf := bytes.NewBufferString(strings.ToLower(norm[0]))
 		for i := 1; i < len(norm); i++ {
-			buf.WriteString(capWord(norm[i]))
+			buf.WriteString(CapWord(norm[i]))
 		}
 		return buf.String()
 	}
@@ -156,7 +156,7 @@ func Camel1Low(norm []string) string {
 func Camel1Up(norm []string) string {
 	buf := bytes.NewBuffer(nil)
 	for _, w := range norm {
-		buf.WriteString(capWord(w))
+		buf.WriteString(CapWord(w))
 	}
 	return buf.String()
 }
