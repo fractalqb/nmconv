@@ -1,5 +1,6 @@
 # nmconv
-[![Build Status](https://travis-ci.org/fractalqb/nmconv.svg)](https://travis-ci.org/fractalqb/nmconv)
+
+[**Repository moved to codeberg.org**](https://codeberg.org/fractalqb/nmconv)
 
 `import "git.fractalqb.de/fractalqb/nmconv"`
 
